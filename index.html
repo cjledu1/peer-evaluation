@@ -1,16 +1,3 @@
-const AIRTABLE_TOKEN   = "patXXXXXXXXXXXXXX";
-const AIRTABLE_BASE_ID = "appXXXXXXXX";
-<!--
-  ★ Airtable 설정 방법
-  1. https://airtable.com 가입 (무료)
-  2. 새 Base 생성 → 테이블명: "상호평가결과"
-  3. 컬럼 추가: 평가자, 조, 대상, 내일 더 새롭게, 꿈을 원대하게, 안돼도 다시, 제출시각
-  4. https://airtable.com/create/tokens 에서 Personal Access Token 생성
-     - Scopes: data.records:write
-     - Access: 해당 Base 선택
-  5. Base ID: Base URL에서 확인 (airtable.com/appXXXXXX/...)
-  6. 아래 AIRTABLE_TOKEN, AIRTABLE_BASE_ID 에 입력
--->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -218,17 +205,16 @@ const AIRTABLE_BASE_ID = "appXXXXXXXX";
   <h2 class="gap-4" id="ro-title"></h2>
   <p class="gap-4" id="ro-sub"></p>
   <div id="ro-content" class="gap-16"></div>
-  <button class="btn btn-ghost gap-24" onclick="resetSubmit()"
+  <button class="btn btn-ghost" onclick="resetSubmit()"
     style="width:100%;margin-top:24px;font-size:0.78rem;color:var(--muted);border:1px solid var(--border)">
     ⚙ 관리자: 제출 초기화
   </button>
 </div>
 
 <script>
-// ★ Airtable 설정
-const AIRTABLE_TOKEN   = "";          // Personal Access Token
-const AIRTABLE_BASE_ID = "";          // Base ID (appXXXXXXXX)
-const AIRTABLE_TABLE   = "상호평가결과"; // 테이블명
+const AIRTABLE_TOKEN   = "";          // ← Airtable Personal Access Token 입력
+const AIRTABLE_BASE_ID = "";          // ← Airtable Base ID 입력 (appXXXXXXXX)
+const AIRTABLE_TABLE   = "상호평가결과";
 const APP_VERSION      = "1.0.0";
 
 const MEMBERS = {
@@ -279,7 +265,6 @@ function doLogin() {
   if (!group || !name) { showToast('조와 이름을 선택해주세요.', true); return; }
   if (!confirm(`${group} · ${name}\n\n이 이름으로 평가를 시작할까요?`)) return;
 
-  // 이미 제출한 경우 (같은 이름만)
   const saved = localStorage.getItem('peereval_submitted');
   if (saved) {
     try {
@@ -288,7 +273,6 @@ function doLogin() {
     } catch(e) {}
   }
 
-  // 같은 사람의 유효한 임시저장 복원
   const draft = localStorage.getItem('peereval_draft');
   if (draft) {
     try {
@@ -299,7 +283,6 @@ function doLogin() {
     } catch(e) {}
   }
 
-  // 새로 시작
   state = { user:name, group, members:MEMBERS[group].filter(m=>m!==name), step:0, scores:{} };
   CRITERIA.forEach(c => { state.scores[c.key] = {}; });
   saveDraft();
