@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>신입사원 동료평가</title>
+<style>
+  :root{
+    --bg:#f0f2f8;
+    --card:#ffffff;
+    --accent:#5b7fff;
+    --accent-dark:#3f5fe0;
+    --danger:#e03c3c;
+    --success:#28a85a;
+    --text:#1f2430;
+    --sub:#6b7280;
+    --border:#e3e6ee;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    padding:20px 16px 40px;
+    display:flex;
+    flex-direction:column;
+  }
+  .screen{display:none;}
+  .screen.active{display:flex;flex-direction:column;flex:1;}
+
+  h1.title{
+    font-size:22px;
+    font-weight:800;
+    margin:8px 0 4px;
+    text-align:center;
+  }
+  p.subtitle{
+    text-align:center;
+    color:var(--sub);
+    font-size:14px;
+    margin:0 0 24px;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(20,30,60,0.06);
+    margin-bottom:16px;
+  }
+
+  label.field-label{
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    color:var(--sub);
+    margin-bottom:6px;
+  }
+
+  select, input[type="text"]{
+    width:100%;
+    padding:14px 12px;
+    border-radius:12px;
+    border:1.5px solid var(--border);
+    background:#fafbfd;
+    font-size:16px;
+    color:var(--text);
+    margin-bottom:16px;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  select:focus, input[type="text"]:focus{
+    outline:none;
+    border-color:var(--accent);
+    background:#fff;
+  }
+
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border:none;
+  }
+  .btn-primary{
+    width:100%;
+    padding:15px;
+    border-radius:12px;
+    background:var(--accent);
+    color:#fff;
+    font-size:16px;
+    font-weight:700;
+    transition:background .15s, opacity .15s;
+  }
+  .btn-primary:active{background:var(--accent-dark);}
+  .btn-primary:disabled{background:#c3cbe6;cursor:not-allowed;}
+
+  .btn-secondary{
+    width:100%;
+    padding:15px;
+    border-radius:12px;
+    background:#eef0f8;
+    color:var(--text);
+    font-size:16px;
+    font-weight:700;
+  }
+
+  .btn-row{
+    display:flex;
+    gap:10px;
+    margin-top:8px;
+  }
+  .btn-row .btn-secondary, .btn-row .btn-primary{flex:1;}
+
+  .progress-wrap{margin-bottom:18px;}
+  .progress-steps{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:var(--sub);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .progress-bar-bg{
+    height:8px;
+    background:#e3e6ee;
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .progress-bar-fill{
+    height:100%;
+    background:var(--accent);
+    border-radius:6px;
+    transition:width .25s ease;
+  }
+
+  .criteria-header{
+    background:var(--card);
+    border-radius:16px;
+    padding:18px 20px;
+    margin-bottom:16px;
+    box-shadow:0 2px 10px rgba(20,30,60,0.06);
+  }
+  .criteria-header .name{
+    font-size:18px;
+    font-weight:800;
+    margin:0 0 6px;
+    color:var(--accent-dark);
+  }
+  .criteria-header .desc{
+    font-size:14px;
+    color:var(--text);
+    line-height:1.5;
+    margin:0 0 8px;
+  }
+  .criteria-header .tags{
+    font-size:12px;
+    color:var(--accent);
+    font-weight:600;
+  }
+
+  .remain-panel{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--card);
+    border-radius:14px;
+    padding:14px 18px;
+    margin-bottom:16px;
+    box-shadow:0 2px 10px rgba(20,30,60,0.06);
+    position:sticky;
+    top:8px;
+    z-index:5;
+  }
+  .remain-panel .label{
+    font-size:13px;
+    color:var(--sub);
+    font-weight:600;
+  }
+  .remain-panel .value{
+    font-size:22px;
+    font-weight:800;
+  }
+  .remain-panel .value.ok{color:var(--success);}
+  .remain-panel .value.bad{color:var(--danger);}
+
+  .member-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .member-card{
+    background:var(--card);
+    border-radius:14px;
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    box-shadow:0 1px 6px rgba(20,30,60,0.05);
+  }
+  .member-card.self{
+    border:1.5px solid #ffb84d;
+  }
+  .member-info{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    flex:1;
+    min-width:0;
+  }
+  .member-name{
+    font-size:15px;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .self-badge{
+    display:inline-block;
+    background:#fff4d6;
+    color:#a3690a;
+    font-size:11px;
+    font-weight:800;
+    padding:3px 8px;
+    border-radius:8px;
+    width:fit-content;
+    white-space:nowrap;
+  }
+  .score-input{
+    width:56px;
+    flex:0 0 56px;
+    text-align:center;
+    padding:10px 4px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    font-size:17px;
+    font-weight:700;
+    background:#fafbfd;
+    margin:0;
+  }
+  .score-input:focus{outline:none;border-color:var(--accent);background:#fff;}
+
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:#2a2f3a;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+    opacity:0;
+    transition:opacity .25s, transform .25s;
+    z-index:1000;
+    max-width:90%;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+  .toast.danger{background:var(--danger);}
+  .toast.success{background:var(--success);}
+
+  .complete-icon{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    background:var(--success);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:20px auto;
+    font-size:36px;
+    color:#fff;
+  }
+
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .name{font-weight:700;}
+
+  .footer-note{
+    text-align:center;
+    color:var(--sub);
+    font-size:12px;
+    margin-top:auto;
+    padding-top:24px;
+  }
+
+  .spacer{flex:1;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 1. 로그인 화면 -->
+  <div class="screen active" id="screen-login">
+    <h1 class="title">신입사원 동료평가</h1>
+    <p class="subtitle">조와 이름을 입력해주세요</p>
+    <div class="card">
+      <label class="field-label" for="input-group">조 선택</label>
+      <select id="input-group">
+        <option value="">-- 조를 선택하세요 --</option>
+      </select>
+      <label class="field-label" for="input-name">이름</label>
+      <input type="text" id="input-name" placeholder="이름을 입력하세요 (예: 홍길동님)" autocomplete="off">
+      <button class="btn-primary" id="btn-start">시작하기</button>
+    </div>
+    <div class="footer-note">v<span id="version-text"></span></div>
+  </div>
+
+  <!-- 2. 평가 화면 -->
+  <div class="screen" id="screen-eval">
+    <div class="progress-wrap">
+      <div class="progress-steps">
+        <span id="step-label">1 / 3</span>
+        <span id="step-name"></span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:33%"></div></div>
+    </div>
+
+    <div class="criteria-header">
+      <p class="name" id="criteria-name"></p>
+      <p class="desc" id="criteria-desc"></p>
+      <p class="tags" id="criteria-tags"></p>
+    </div>
+
+    <div class="remain-panel">
+      <span class="label">잔여 점수</span>
+      <span class="value" id="remain-value">100</span>
+    </div>
+
+    <div class="member-list" id="member-list"></div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" id="btn-prev">이전</button>
+      <button class="btn-primary" id="btn-next">다음</button>
+    </div>
+  </div>
+
+  <!-- 3. 완료 화면 -->
+  <div class="screen" id="screen-done">
+    <div class="spacer"></div>
+    <div class="complete-icon">✓</div>
+    <h1 class="title">제출 완료!</h1>
+    <p class="subtitle">평가해주셔서 감사합니다.</p>
+    <div class="card" id="summary-card"></div>
+    <div class="spacer"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbz_CA5DJhACfLUgXdTtn9wOMvsZ8OzZrIRoPFB2Wp_kpfAsx82ODrd8y3_97kfUaeal/exec";
+  var APP_VERSION = "2.0.0";
+
+  var MEMBERS = {
+    "ONE-POP": ["구교선님","권성현님","박다운님","송하랑님","신채은님","조상형님","좌민경님"],
+    "더 이어": ["권보민님","김승민님","박영준님","반진영님","윤주희님","이영훈님","정다일님","조승현님"],
+    "Gift Way": ["김민수님","김민아님","문재혁님","박도연님","박영서님","양승빈님","이창욱님","장진웅님"],
+    "화물예보": ["권회준님","김민호님","김성범님","김성우님","김시원님","임나은님","정서현님","정소윤님"],
+    "Les's Go": ["강민주님","권민주님","김재원님","노영후님","손동혁님","송승호님","윤태혁님","황유빈님"],
+    "히포크라TES": ["고정음님","도건우님","배재현님","이용현님","임세령님","전수빈님","최대현님","최민규님"],
+    "더-함": ["김민경님","김민우님","김태석님","이승찬님","천유동님","허준원님","황주희님"]
+  };
+
+  var CRITERIA = [
+    { key:"score1", name:"내일 더 새롭게", desc:"호기심을 기반으로 트렌드를 읽고 혁신을 만들기 위해 끊임없이 새로운 것을 학습하고 제안한다.", tags:"#호기심 #학습민첩성 #변화주도 #창의적 사고" },
+    { key:"score2", name:"꿈을 원대하게", desc:"글로벌을 기준으로 도전적 목표를 세우고 열정적으로 어려움을 헤쳐나간다.", tags:"#도전성 #성취지향 #거시적 사고 #자아효능감" },
+    { key:"score3", name:"안돼도 다시", desc:"어려워도 긍정으로 버티고 겸허하게 다시 시도하며 실패를 교훈 삼아 다음에 더 나은 결과를 만든다.", tags:"#긍정성 #회복탄력성 #끈기" }
+  ];
+
+  var MAX_PER_PERSON = 30;
+  var TOTAL_SCORE = 100;
+
+  var state = {
+    group: "",
+    name: "",
+    members: [],
+    step: 0,
+    scores: {}
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+  var screenLogin = $("screen-login");
+  var screenEval = $("screen-eval");
+  var screenDone = $("screen-done");
+
+  var selGroup = $("input-group");
+  var inpName = $("input-name");
+  var btnStart = $("btn-start");
+
+  var stepLabel = $("step-label");
+  var stepName = $("step-name");
+  var progressFill = $("progress-fill");
+  var criteriaName = $("criteria-name");
+  var criteriaDesc = $("criteria-desc");
+  var criteriaTags = $("criteria-tags");
+  var remainValue = $("remain-value");
+  var memberList = $("member-list");
+  var btnPrev = $("btn-prev");
+  var btnNext = $("btn-next");
+
+  var toastEl = $("toast");
+  var versionText = $("version-text");
+  var summaryCard = $("summary-card");
+
+  versionText.textContent = APP_VERSION;
+
+  Object.keys(MEMBERS).forEach(function(g){
+    var opt = document.createElement("option");
+    opt.value = g;
+    opt.textContent = g;
+    selGroup.appendChild(opt);
+  });
+
+  var toastTimer = null;
+  function showToast(msg, type){
+    toastEl.textContent = msg;
+    toastEl.className = "toast show" + (type ? (" " + type) : "");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){
+      toastEl.className = "toast";
+    }, 2600);
+  }
+
+  function showScreen(id){
+    [screenLogin, screenEval, screenDone].forEach(function(s){
+      s.classList.remove("active");
+    });
+    id.classList.add("active");
+  }
+
+  function submittedKey(name){ return "peereval_submitted_" + name; }
+  function isAlreadySubmitted(name){
+    return localStorage.getItem(submittedKey(name)) === "1";
+  }
+  function markSubmitted(name){
+    localStorage.setItem(submittedKey(name), "1");
+  }
+
+  var DRAFT_KEY = "peereval_draft";
+  function saveDraft(){
+    try{
+      var draft = {
+        version: APP_VERSION,
+        user: state.name,
+        group: state.group,
+        step: state.step,
+        scores: state.scores
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }catch(e){}
+  }
+  function loadDraft(name){
+    try{
+      var raw = localStorage.getItem(DRAFT_KEY);
+      if(!raw) return null;
+      var draft = JSON.parse(raw);
+      if(draft && draft.version === APP_VERSION && draft.user === name){
+        return draft;
+      }
+      return null;
+    }catch(e){
+      return null;
+    }
+  }
+  function clearDraft(){
+    localStorage.removeItem(DRAFT_KEY);
+  }
+
+  function resetLoginFields(){
+    selGroup.value = "";
+    inpName.value = "";
+  }
+
+  btnStart.addEventListener("click", function(){
+    var group = selGroup.value;
+    var name = inpName.value.trim();
+
+    if(!group || !name){
+      showToast("조와 이름을 모두 입력해주세요.", "danger");
+      return;
+    }
+
+    var list = MEMBERS[group] || [];
+    if(list.indexOf(name) === -1){
+      showToast("명단에서 이름을 찾을 수 없습니다. 다시 확인해주세요.", "danger");
+      return;
+    }
+
+    var confirmed = confirm(name + "이 맞으신가요?");
+    if(!confirmed){
+      return;
+    }
+
+    if(isAlreadySubmitted(name)){
+      alert("이미 제출을 완료하셨습니다. 다시 제출할 수 없습니다.");
+      resetLoginFields();
+      return;
+    }
+
+    state.group = group;
+    state.name = name;
+    state.members = list.slice();
+    initScores();
+
+    var draft = loadDraft(name);
+    if(draft && draft.group === group){
+      state.scores = draft.scores || state.scores;
+      state.step = typeof draft.step === "number" ? draft.step : 0;
+    } else {
+      clearDraft();
+      state.step = 0;
+    }
+
+    renderEvalStep();
+    showScreen(screenEval);
+  });
+
+  function initScores(){
+    state.scores = {};
+    state.members.forEach(function(m){
+      state.scores[m] = { score1:null, score2:null, score3:null };
+    });
+  }
+
+  function currentCriteria(){
+    return CRITERIA[state.step];
+  }
+
+  function computeTotal(key){
+    var total = 0;
+    state.members.forEach(function(m){
+      var v = state.scores[m][key];
+      if(typeof v === "number" && !isNaN(v)) total += v;
+    });
+    return total;
+  }
+
+  function allFilled(key){
+    return state.members.every(function(m){
+      var v = state.scores[m][key];
+      return typeof v === "number" && !isNaN(v) && v >= 0;
+    });
+  }
+
+  function clampScore(v){
+    if(isNaN(v) || v < 0) v = 0;
+    if(v > MAX_PER_PERSON) v = MAX_PER_PERSON;
+    return Math.floor(v);
+  }
+
+  function renderEvalStep(){
+    var c = currentCriteria();
+    var key = c.key;
+
+    stepLabel.textContent = (state.step + 1) + " / " + CRITERIA.length;
+    stepName.textContent = c.name;
+    progressFill.style.width = (((state.step + 1) / CRITERIA.length) * 100) + "%";
+
+    criteriaName.textContent = c.name;
+    criteriaDesc.textContent = c.desc;
+    criteriaTags.textContent = c.tags;
+
+    memberList.innerHTML = "";
+    state.members.forEach(function(m){
+      var card = document.createElement("div");
+      card.className = "member-card" + (m === state.name ? " self" : "");
+
+      var info = document.createElement("div");
+      info.className = "member-info";
+
+      var nameEl = document.createElement("div");
+      nameEl.className = "member-name";
+      nameEl.textContent = m;
+      info.appendChild(nameEl);
+
+      if(m === state.name){
+        var badge = document.createElement("span");
+        badge.className = "self-badge";
+        badge.textContent = "본인은 0점을 입력해주세요";
+        info.appendChild(badge);
+      }
+
+      card.appendChild(info);
+
+      var input = document.createElement("input");
+      input.type = "text";
+      input.inputMode = "numeric";
+      input.pattern = "[0-9]*";
+      input.className = "score-input";
+      input.maxLength = 2;
+      var curVal = state.scores[m][key];
+      input.value = (typeof curVal === "number") ? String(curVal) : "";
+      input.placeholder = "0";
+
+      input.addEventListener("input", function(){
+        var raw = input.value.replace(/[^0-9]/g, "");
+        if(raw === ""){
+          input.value = "";
+          state.scores[m][key] = null;
+        } else {
+          var num = clampScore(parseInt(raw, 10));
+          input.value = String(num);
+          state.scores[m][key] = num;
+        }
+        updateRemainPanel(key);
+        saveDraft();
+      });
+
+      input.addEventListener("blur", function(){
+        updateRemainPanel(key);
+      });
+
+      card.appendChild(input);
+      memberList.appendChild(card);
+    });
+
+    updateRemainPanel(key);
+
+    btnPrev.style.visibility = state.step === 0 ? "hidden" : "visible";
+    btnNext.textContent = (state.step === CRITERIA.length - 1) ? "제출하기" : "다음";
+  }
+
+  function updateRemainPanel(key){
+    var total = computeTotal(key);
+    var remain = TOTAL_SCORE - total;
+    remainValue.textContent = remain;
+    remainValue.className = "value " + (remain === 0 ? "ok" : "bad");
+  }
+
+  btnPrev.addEventListener("click", function(){
+    if(state.step > 0){
+      state.step -= 1;
+      saveDraft();
+      renderEvalStep();
+    }
+  });
+
+  btnNext.addEventListener("click", function(){
+    var c = currentCriteria();
+    var key = c.key;
+
+    if(!allFilled(key)){
+      showToast("모든 조원의 점수를 입력해주세요.", "danger");
+      return;
+    }
+    var total = computeTotal(key);
+    if(total !== TOTAL_SCORE){
+      showToast("총합이 100점이 되어야 합니다. (현재 " + total + "점)", "danger");
+      return;
+    }
+
+    if(state.step < CRITERIA.length - 1){
+      state.step += 1;
+      saveDraft();
+      renderEvalStep();
+    } else {
+      handleSubmit();
+    }
+  });
+
+  function validateAll(){
+    for(var i = 0; i < CRITERIA.length; i++){
+      var key = CRITERIA[i].key;
+      if(!allFilled(key)) return false;
+      if(computeTotal(key) !== TOTAL_SCORE) return false;
+    }
+    return true;
+  }
+
+  function handleSubmit(){
+    if(!validateAll()){
+      showToast("입력값을 확인해주세요.", "danger");
+      return;
+    }
+
+    var confirmed = confirm(state.name + "님이 입력한 결과는 수정할 수 없습니다. 확인하셨나요?");
+    if(!confirmed){
+      return;
+    }
+
+    var timestamp = new Date().toISOString();
+    var rows = state.members.map(function(m){
+      var s = state.scores[m];
+      return {
+        evaluator: state.name,
+        group: state.group,
+        target: m,
+        score1: s.score1,
+        score2: s.score2,
+        score3: s.score3,
+        timestamp: timestamp
+      };
+    });
+
+    var payload = {
+      evaluator: state.name,
+      group: state.group,
+      timestamp: timestamp,
+      rows: rows
+    };
+
+    btnNext.disabled = true;
+    btnNext.textContent = "제출 중...";
+
+    submitPayload(payload).then(function(){
+      finalizeSubmit(payload);
+    }).catch(function(){
+      downloadCSV(payload);
+      finalizeSubmit(payload);
+      showToast("서버 전송에 실패하여 CSV 파일로 저장했습니다.", "danger");
+    });
+  }
+
+  function submitPayload(payload){
+    return fetch(GOOGLE_SHEET_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(payload)
+    }).then(function(res){
+      if(!res.ok) throw new Error("bad status");
+      return res;
+    });
+  }
+
+  function downloadCSV(payload){
+    try{
+      var header = ["evaluator","group","target","score1","score2","score3","timestamp"];
+      var lines = [header.join(",")];
+      payload.rows.forEach(function(r){
+        lines.push(header.map(function(h){ return r[h]; }).join(","));
+      });
+      var csv = lines.join("\n");
+      var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "peer_eval_" + payload.evaluator + "_" + Date.now() + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }catch(e){}
+  }
+
+  function finalizeSubmit(payload){
+    markSubmitted(state.name);
+    clearDraft();
+    btnNext.disabled = false;
+    renderSummary(payload);
+    showScreen(screenDone);
+  }
+
+  function renderSummary(payload){
+    summaryCard.innerHTML = "";
+    CRITERIA.forEach(function(c){
+      var total = payload.rows.reduce(function(acc, r){
+        return acc + (r[c.key] || 0);
+      }, 0);
+      var row = document.createElement("div");
+      row.className = "summary-row";
+      var nameEl = document.createElement("span");
+      nameEl.className = "name";
+      nameEl.textContent = c.name;
+      var valEl = document.createElement("span");
+      valEl.textContent = total + "점 배분";
+      row.appendChild(nameEl);
+      row.appendChild(valEl);
+      summaryCard.appendChild(row);
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
